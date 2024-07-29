@@ -5,6 +5,13 @@ Author: Xiaoyang Wu (xiaoyang.wu.cs@gmail.com)
 Please cite our work if the code is helpful to you.
 """
 
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+
+from pathlib import Path
+import sys
+sys.path.append(str(Path(__file__).parent.parent))
+
 from pointcept.engines.defaults import (
     default_argument_parser,
     default_config_parser,
@@ -22,8 +29,10 @@ def main_worker(cfg):
 
 def main():
     args = default_argument_parser().parse_args()
-    args.config_file = "configs/semantic_kitti/semseg-pt-v2m2-0-base_crcust_top.py"
+    args.config_file = "/home/HKCRC_perception/PC_gen/PointTransformerV3/exp/semantic_kitti/semseg-pt-v2m2-0-base_crcust_top/config.py"
     args.save_path = "exp/semantic_kitti/semseg-pt-v2m2-0-base_crcust_top"
+    args.num_gpus = 1
+    args.num_machines = 1
     cfg = default_config_parser(args.config_file, args.save_path, args.options)
 
     launch(

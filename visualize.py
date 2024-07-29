@@ -44,22 +44,34 @@ points = []
 with open(data_path, "rb") as file:
     while True:
         # Read 4 floats (16 bytes) at a time
-        bytes = file.read(16)
+        bytes = file.read(12)
         if not bytes:
             break
         # Unpack the bytes to floats
-        x, y, z, intensity = struct.unpack('ffff', bytes)
+        x, y, z = struct.unpack('fff', bytes)
         points.append([x, y, z])
 
 points = np.array(points)
 
-np.savetxt("/home/HKCRC_perception/PC_gen/PointTransformerV3/exp/semantic_kitti/semseg-pt-v2m2-0-base_crcust_top/txt/000011.txt", points, delimiter=',')
+NUM = "000032"
 
-pre_path = "/home/HKCRC_perception/PC_gen/PointTransformerV3/exp/semantic_kitti/semseg-pt-v2m2-0-base/result/08_000000_pred.npy"
-save_path = "/home/HKCRC_perception/PC_gen/PointTransformerV3/exp/semantic_kitti/semseg-pt-v2m2-0-base/pcd/11_000000_pred.ply"
+np.savetxt("/home/HKCRC_perception/PC_gen/PointTransformerV3/exp/semantic_kitti/semseg-pt-v2m2-0-base_crcust_top/txt/" + NUM + ".txt", points, delimiter=',')
+
+pre_path = "/home/HKCRC_perception/PC_gen/PointTransformerV3/exp/semantic_kitti/semseg-pt-v2m2-0-base_crcust_top/result/00_" + NUM + "_pred.npy"
+label_path = "/home/tower_crane_data/crcust/dataset/crcust_top_3d_seg/v1/dataset/sequences/00/labels/" + NUM + ".label"
+#save_path = "/home/HKCRC_perception/PC_gen/PointTransformerV3/exp/semantic_kitti/semseg-pt-v2m2-0-base/pcd/11_000000_pred.ply"
 prediction = read_npy_by_torch(pre_path)
-print(max(prediction), len(points))
-points[np.where(prediction!=0)] = [0, 0, 0]
-np.savetxt("/home/HKCRC_perception/PC_gen/PointTransformerV3/exp/semantic_kitti/semseg-pt-v2m2-0-base/txt/11_000000_pred.txt", points, delimiter=',')
 
+
+# pre_points = points.copy()
+# print(len(prediction), len(points))
+# pre_points[np.where(prediction!=0)] = [0, 0, 0]
+# np.savetxt("/home/HKCRC_perception/PC_gen/PointTransformerV3/exp/semantic_kitti/semseg-pt-v2m2-0-base_crcust_top/txt" + NUM + "_pred_0.txt", pre_points, delimiter=',')
+
+
+labels = np.fromfile(label_path, dtype=np.int32)
+print(len(prediction), len(points), len(labels))
+gt_points = points.copy()
+gt_points[np.where(labels!=2)] = [0, 0, 0]
+np.savetxt("/home/HKCRC_perception/PC_gen/PointTransformerV3/exp/semantic_kitti/semseg-pt-v2m2-0-base_crcust_top/txt/" + NUM + "_label_2.txt", gt_points, delimiter=',')
 #save_point_cloud(points, color=prediction, file_path=save_path, logger=None)

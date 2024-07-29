@@ -29,3 +29,8 @@ python tools/train.py --config-file configs/semantic_kitti/semseg-pt-v2m2-0-base
 python tools/test.py --config-file configs/semantic_kitti/semseg-pt-v2m2-0-base_crcust_top.py --options save_path=/home/HKCRC_perception/PC_gen/PointTransformerV3/exp/semantic_kitti/semseg-pt-v2m2-0-base_crcust_top/model/model_last.pth
 
 sh scripts/test.sh -p python -d semantic_kitti -n semseg-pt-v2m2-0-base_crcust_top -w model_last -g 1
+
+
+PYTHON -u tools/test.py  --config-file "$CONFIG_DIR" \
+  --num-gpus "$GPU" \
+  --options save_path="$EXP_DIR" weight="${MODEL_DIR}"/"${WEIGHT}".pth

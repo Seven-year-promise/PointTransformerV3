@@ -7,6 +7,9 @@ Please cite our work if the code is helpful to you.
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
+from pathlib import Path
+import sys
+sys.path.append(str(Path(__file__).parent.parent))
 from pointcept.engines.defaults import (
     default_argument_parser,
     default_config_parser,

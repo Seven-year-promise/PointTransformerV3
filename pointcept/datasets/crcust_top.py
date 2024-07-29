@@ -48,9 +48,10 @@ class CRCUST_topDataset(DefaultDataset):
     def get_data(self, idx):
         data_path = self.data_list[idx % len(self.data_list)]
         with open(data_path, "rb") as b:
-            scan = np.fromfile(b, dtype=np.float32).reshape(-1, 4)
+            scan = np.fromfile(b, dtype=np.float32).reshape(-1, 3)
         coord = scan[:, :3]
-        strength = scan[:, -1].reshape([-1, 1])
+        # strength = scan[:, -1].reshape([-1, 1])
+        strength = np.ones_like(scan[:, 0]).reshape([-1, 1])
 
         label_file = data_path.replace("velodyne", "labels").replace(".bin", ".label")
         if os.path.exists(label_file):
