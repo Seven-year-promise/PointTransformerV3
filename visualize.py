@@ -37,41 +37,42 @@ def read_npy_by_torch(file_path):
     #tensor_data = torch.from_numpy(data)
     return data
 
-data_path = "/home/tower_crane_data/crcust/dataset/crcust_top_3d_seg/v1/dataset/sequences/00/velodyne/000011.bin"
-points = []
+NUM = "000019"
 
-# Open the binary file
-with open(data_path, "rb") as file:
-    while True:
-        # Read 4 floats (16 bytes) at a time
-        bytes = file.read(12)
-        if not bytes:
-            break
-        # Unpack the bytes to floats
-        x, y, z = struct.unpack('fff', bytes)
-        points.append([x, y, z])
-
-points = np.array(points)
-
-NUM = "000032"
-
-np.savetxt("/home/HKCRC_perception/PC_gen/PointTransformerV3/exp/semantic_kitti/semseg-pt-v2m2-0-base_crcust_top/txt/" + NUM + ".txt", points, delimiter=',')
-
-pre_path = "/home/HKCRC_perception/PC_gen/PointTransformerV3/exp/semantic_kitti/semseg-pt-v2m2-0-base_crcust_top/result/00_" + NUM + "_pred.npy"
+data_path = "/home/tower_crane_data/crcust/dataset/crcust_top_3d_seg/v1/dataset/sequences/00/velodyne/" + NUM + ".bin"
+pre_path = "/home/HKCRC_perception/PC_gen/PointTransformerV3/exp/semantic_kitti/semseg-pt-v2m2-0-base_crcust_top_cls3/result/00_" + NUM + "_pred.npy"
 label_path = "/home/tower_crane_data/crcust/dataset/crcust_top_3d_seg/v1/dataset/sequences/00/labels/" + NUM + ".label"
+# points = []
+
+# # Open the binary file
+# with open(data_path, "rb") as file:
+#     while True:
+#         # Read 4 floats (16 bytes) at a time
+#         bytes = file.read(12)
+#         if not bytes:
+#             break
+#         # Unpack the bytes to floats
+#         x, y, z = struct.unpack('fff', bytes)
+#         points.append([x, y, z])
+
+
+with open(data_path, "rb") as b:
+    points = np.fromfile(b, dtype=np.float32).reshape(-1, 3)
+points = np.array(points)
+np.savetxt("/home/HKCRC_perception/PC_gen/PointTransformerV3/exp/semantic_kitti/semseg-pt-v2m2-0-base_crcust_top_cls3/txt/" + NUM + ".txt", points, delimiter=',')
+
+
 #save_path = "/home/HKCRC_perception/PC_gen/PointTransformerV3/exp/semantic_kitti/semseg-pt-v2m2-0-base/pcd/11_000000_pred.ply"
 prediction = read_npy_by_torch(pre_path)
-
-
-# pre_points = points.copy()
-# print(len(prediction), len(points))
-# pre_points[np.where(prediction!=0)] = [0, 0, 0]
-# np.savetxt("/home/HKCRC_perception/PC_gen/PointTransformerV3/exp/semantic_kitti/semseg-pt-v2m2-0-base_crcust_top/txt" + NUM + "_pred_0.txt", pre_points, delimiter=',')
+pre_points = points.copy()
+print(len(prediction), len(points))
+pre_points[np.where(prediction!=2)] = [0, 0, 0]
+np.savetxt("/home/HKCRC_perception/PC_gen/PointTransformerV3/exp/semantic_kitti/semseg-pt-v2m2-0-base_crcust_top_cls3/txt/" + NUM + "_pred_2.txt", pre_points, delimiter=',')
 
 
 labels = np.fromfile(label_path, dtype=np.int32)
 print(len(prediction), len(points), len(labels))
 gt_points = points.copy()
 gt_points[np.where(labels!=2)] = [0, 0, 0]
-np.savetxt("/home/HKCRC_perception/PC_gen/PointTransformerV3/exp/semantic_kitti/semseg-pt-v2m2-0-base_crcust_top/txt/" + NUM + "_label_2.txt", gt_points, delimiter=',')
+np.savetxt("/home/HKCRC_perception/PC_gen/PointTransformerV3/exp/semantic_kitti/semseg-pt-v2m2-0-base_crcust_top_cls3/txt/" + NUM + "_label_2.txt", gt_points, delimiter=',')
 #save_point_cloud(points, color=prediction, file_path=save_path, logger=None)

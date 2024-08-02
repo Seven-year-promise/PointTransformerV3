@@ -7,6 +7,7 @@ Please cite our work if the code is helpful to you.
 
 import os
 import numpy as np
+from copy import deepcopy
 
 from .builder import DATASETS
 from .defaults import DefaultDataset
@@ -81,17 +82,55 @@ class CRCUST_topDataset(DefaultDataset):
     @staticmethod
     def get_learning_map(ignore_index):
         learning_map = {
-            0: ignore_index,  # "unlabeled"
-            1: 0,  # "mic"
-            2: 1,  # "construction_top"
+            ignore_index: ignore_index,
+            0: 0,  # "unlabeled"
+            1: 1,  # "mic"
+            2: 2,  # "construction_top"
         }
         return learning_map
 
     @staticmethod
     def get_learning_map_inv(ignore_index):
         learning_map_inv = {
-            ignore_index: ignore_index,  # "unlabeled"
-            0: 1,  # "mic"
-            1: 2,  # "construction_top"
+            ignore_index: ignore_index,
+            0: 0,  # "unlabeled"
+            1: 1,  # "mic"
+            2: 2,  # "construction_top"
         }
         return learning_map_inv
+    
+    def get_inf_data(self, pc_array):
+
+        coord = pc_array[:, :3]
+        # strength = scan[:, -1].reshape([-1, 1])
+        strength = np.ones_like(pc_array[:, 0]).reshape([-1, 1])
+        data_dict = dict(
+            coord=coord,
+            strength=strength,
+        )
+
+        data_dict = self.transform(data_dict)
+        result_dict = dict(name="inference")
+
+        data_dict_list = []
+        for aug in self.aug_transform:
+            data_dict_list.append(aug(deepcopy(data_dict)))
+
+        fragment_list = []
+        for data in data_dict_list:
+            if self.test_voxelize is not None:
+                data_part_list = self.test_voxelize(data)
+            else:
+                data["index"] = np.arange(data["coord"].shape[0])
+                data_part_list = [data]
+            for data_part in data_part_list:
+                if self.test_crop is not None:
+                    data_part = self.test_crop(data_part)
+                else:
+                    data_part = [data_part]
+                fragment_list += data_part
+
+        for i in range(len(fragment_list)):
+            fragment_list[i] = self.post_transform(fragment_list[i])
+        result_dict["fragment_list"] = fragment_list
+        return result_dict

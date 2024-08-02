@@ -34,3 +34,11 @@ sh scripts/test.sh -p python -d semantic_kitti -n semseg-pt-v2m2-0-base_crcust_t
 PYTHON -u tools/test.py  --config-file "$CONFIG_DIR" \
   --num-gpus "$GPU" \
   --options save_path="$EXP_DIR" weight="${MODEL_DIR}"/"${WEIGHT}".pth
+
+
+
+## 3 classes
+
+python tools/train.py --config-file configs/semantic_kitti/semseg-pt-v2m2-0-base_crcust_top.py --options save_path=exp/semantic_kitti/semseg-pt-v2m2-0-base_crcust_top_cls3
+
+sh scripts/test.sh -p python -d semantic_kitti -n semseg-pt-v2m2-0-base_crcust_top_cls3 -w model_last -g 1

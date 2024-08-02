@@ -12,7 +12,7 @@ model = dict(
     backbone=dict(
         type="PT-v2m2",
         in_channels=4,
-        num_classes=2,
+        num_classes=3,
         patch_embed_depth=1,
         patch_embed_channels=48,
         patch_embed_groups=6,
@@ -37,7 +37,7 @@ model = dict(
     # fmt: off
     criteria=[
         dict(type="CrossEntropyLoss",
-             weight=[2.5, 1.5], #[3.1557, 8.7029, 7.8281, 6.1354, 6.3161, 7.9937, 8.9704, 10.1922, 1.6155, 4.2187, 1.9385, 5.5455, 2.0198, 2.6261, 1.3212, 5.1102, 2.5492, 5.8585, 7.3929],
+             weight=[2.5, 2.5, 1.5], #[3.1557, 8.7029, 7.8281, 6.1354, 6.3161, 7.9937, 8.9704, 10.1922, 1.6155, 4.2187, 1.9385, 5.5455, 2.0198, 2.6261, 1.3212, 5.1102, 2.5492, 5.8585, 7.3929],
              loss_weight=1.0,
              ignore_index=-1),
         dict(type="LovaszLoss", mode="multiclass", loss_weight=1.0, ignore_index=-1),
@@ -46,7 +46,7 @@ model = dict(
 )
 
 # scheduler settings
-epoch = 150
+epoch = 50
 eval_epoch = 5
 optimizer = dict(type="AdamW", lr=0.002, weight_decay=0.005)
 scheduler = dict(
@@ -63,12 +63,13 @@ dataset_type = "CRCUST_topDataset"
 data_root = "/home/tower_crane_data/crcust/dataset/crcust_top_3d_seg/v1"
 ignore_index = -1
 names = [
+    "background",
     "mic",
     "construction_top"
 ]
 
 data = dict(
-    num_classes=2,
+    num_classes=3,
     ignore_index=ignore_index,
     names=names,
     train=dict(

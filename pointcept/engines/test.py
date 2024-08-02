@@ -89,6 +89,7 @@ class TesterBase:
 
     def build_test_loader(self):
         test_dataset = build_dataset(self.cfg.data.test)
+        self.test_dataset = test_dataset
         if comm.get_world_size() > 1:
             test_sampler = torch.utils.data.distributed.DistributedSampler(test_dataset)
         else:
@@ -114,6 +115,41 @@ class TesterBase:
 
 @TESTERS.register_module()
 class SemSegTester(TesterBase):
+    def predict(self, pc_array):
+        """
+        pc_array: the point cloud data np.array: nx4 or nx3
+        return the labels for each point: nx1
+        """
+        self.model.eval()
+
+        data_dict = self.test_dataset.get_inf_data(pc_array)  # current assume batch size is 1
+        fragment_list = data_dict.pop("fragment_list")
+        data_name = data_dict.pop("name")
+        pred = torch.zeros((pc_array.shape[0], self.cfg.data.num_classes)).cuda()
+        for i in range(len(fragment_list)):
+            fragment_batch_size = 1
+            s_i, e_i = i * fragment_batch_size, min(
+                (i + 1) * fragment_batch_size, len(fragment_list)
+            )
+            input_dict = collate_fn(fragment_list[s_i:e_i])
+            for key in input_dict.keys():
+                if isinstance(input_dict[key], torch.Tensor):
+                    input_dict[key] = input_dict[key].cuda(non_blocking=True)
+            idx_part = input_dict["index"]
+            with torch.no_grad():
+                pred_part = self.model(input_dict)["seg_logits"]  # (n, k)
+                pred_part = F.softmax(pred_part, -1)
+                if self.cfg.empty_cache:
+                    torch.cuda.empty_cache()
+                bs = 0
+                for be in input_dict["offset"]:
+                    pred[idx_part[bs:be], :] += pred_part[bs:be]
+                    bs = be
+
+        pred = pred.max(1)[1].data.cpu().numpy()
+
+        return pred
+
     def test(self):
         assert self.test_loader.batch_size == 1
         logger = get_root_logger()
